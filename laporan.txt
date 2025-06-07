@@ -10,3 +10,11 @@ Tanggal: 2025-05-30
 Jenis: pembelian
 - afsd | Jumlah: 4 | Harga: Rp5,000 | Nota: 
 
+====Kekurangan===== 
+Menambahkan fungsi tombol "simpan ke laporan" file bahan.php
+file laporan.php
+filter di transaksi.php
+fungsi daftar user
+fungsi edit menu bahan
+
+
