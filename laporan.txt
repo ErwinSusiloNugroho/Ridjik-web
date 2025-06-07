@@ -1,0 +1,12 @@
+Tanggal: 2025-05-30
+Jenis: pembelian
+- a | Jumlah: 3 | Harga: Rp40,000 | Nota: 
+
+Tanggal: 2025-05-30
+Jenis: pembelian
+- afsd | Jumlah: 4 | Harga: Rp5,000 | Nota: 
+
+Tanggal: 2025-05-30
+Jenis: pembelian
+- afsd | Jumlah: 4 | Harga: Rp5,000 | Nota: 
+
