@@ -1,47 +1,50 @@
 <?php  
 session_start();       
 
-// Konfigurasi database 
-$host = 'localhost'; 
-$dbname = 'ridjik'; 
-$db_username = 'root'; 
-$db_password = '';  
-
-try {     
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $db_username, $db_password);     
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); 
-} catch(PDOException $e) {     
-    die("Koneksi database gagal: " . $e->getMessage()); 
-}  
+// Include file koneksi database
+require_once 'koneksi.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {     
-    $username = trim($_POST['username']); // Perbaiki dari 'user' ke 'username'
+    $username = trim($_POST['username']);
     $password = $_POST['password'];          
     
     if (!empty($username) && !empty($password)) {         
-        // Query untuk mencari user berdasarkan username (bukan admin)
-        $query = "SELECT * FROM user WHERE username = :username";         
-        $stmt = $pdo->prepare($query);         
-        $stmt->bindParam(':username', $username);         
-        $stmt->execute();                  
-        
-        $user = $stmt->fetch(PDO::FETCH_ASSOC); // Ubah dari $admin ke $user                 
-        
-        if ($user && $password === $user['password']) {             
-            // Login berhasil             
-            $_SESSION['user_id'] = $user['id_user']; // Sesuaikan dengan kolom tabel user
-            $_SESSION['username'] = $user['username']; // Ubah dari admin_username             
-            $_SESSION['user_type'] = 'user'; // Ubah dari 'admin' ke 'user'                         
+        try {
+            // Query untuk mencari user berdasarkan username atau email
+            $query = "SELECT * FROM user WHERE username = :username OR email = :username";         
+            $stmt = $pdo->prepare($query);         
+            $stmt->bindParam(':username', $username);         
+            $stmt->execute();                  
             
-            header("Location:udashboard.php");     
-            exit;         
-        } else {             
-            $error = "Username atau password salah.";         
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);                 
+            
+            // Verifikasi password dengan password_verify untuk password yang di-hash
+            if ($user && password_verify($password, $user['password'])) {             
+                // Login berhasil             
+                $_SESSION['user_id'] = $user['id_user'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['email'] = $user['email']; 
+                $_SESSION['user_type'] = 'user';                         
+                
+                header("Location: udashboard.php");     
+                exit;         
+            } else {             
+                $error = "Username/Email atau password salah.";         
+            }
+        } catch (PDOException $e) {
+            $error = "Error koneksi database: " . $e->getMessage();
         }     
     } else {         
         $error = "Mohon isi semua field.";     
     } 
 } 
+
+// Ambil pesan sukses jika ada
+$success_message = '';
+if (isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -59,13 +62,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h1>Login</h1>
       </div>
 
+      <?php if (!empty($success_message)): ?>
+        <div class="success-message" style="background-color: #d4edda; color: #155724; padding: 10px; border: 1px solid #c3e6cb; border-radius: 4px; margin-bottom: 10px;">
+          <?= htmlspecialchars($success_message) ?>
+        </div>
+      <?php endif; ?>
+
       <?php if (isset($error)): ?>
-        <div class="error-message"><?= $error ?></div>
+        <div class="error-message" style="background-color: #f8d7da; color: #721c24; padding: 10px; border: 1px solid #f5c6cb; border-radius: 4px; margin-bottom: 10px;">
+          <?= htmlspecialchars($error) ?>
+        </div>
       <?php endif; ?>
 
       <form method="post" action="" class="login-form">
         <div class="input-group">
-          <input type="text" class="input-field" name="username" placeholder="Username" required>
+          <input type="text" class="input-field" name="username" placeholder="Username atau Email" required>
         </div>
         <div class="input-group password-group">
           <input type="password" class="input-field" name="password" placeholder="Password" required>
@@ -90,7 +101,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   const icon = document.querySelector('.toggle-password');
   const passwordField = document.querySelector('input[name="password"]');
 
-  
   icon.innerHTML = '🙈';
   icon.setAttribute('data-visible', 'false');
 
@@ -99,16 +109,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (isVisible) {
       passwordField.setAttribute('type', 'password');
-      icon.innerHTML = '🙈'; // Mata tertutup
+      icon.innerHTML = '🙈';
       icon.setAttribute('data-visible', 'false');
     } else {
       passwordField.setAttribute('type', 'text');
-      icon.innerHTML = '🙉'; // Mata terbuka🙈
+      icon.innerHTML = '🙉';
       icon.setAttribute('data-visible', 'true');
     }
   });
 </script>
-
 
 </body>
 </html>
